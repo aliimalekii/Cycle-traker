@@ -1,0 +1,19 @@
+{
+  "name": "Cycle Tracker - Mobina",
+  "short_name": "Cycle Tracker",
+  "description": "پیگیری و پیش‌بینی چرخه مبینا",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7f5f8",
+  "theme_color": "#29242b",
+  "orientation": "portrait",
+  "lang": "fa",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
