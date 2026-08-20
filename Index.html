@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cycle Tracker - Mobina</title>
+    <link rel="manifest" href="./manifest.json">
+
+    <meta name="theme-color" content="#29242b">
+    <style>
+
+        * {
+            box-sizing: border-box;
+            font-family: Arial, Tahoma, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f7f5f8;
+            color: #27232a;
+        }
+
+        .app {
+            max-width: 500px;
+            margin: auto;
+            padding: 18px;
+        }
+
+        header {
+            text-align: center;
+            padding: 15px 0 25px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        header p {
+            color: #777;
+            margin-top: 8px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+        }
+
+        .main-card {
+            text-align: center;
+        }
+
+        .label {
+            color: #777;
+            font-size: 14px;
+        }
+
+        .prediction {
+            font-size: 25px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .sub {
+            color: #777;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        button {
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .primary {
+            background: #29242b;
+            color: white;
+        }
+
+        .secondary {
+            background: #eee9ef;
+            color: #29242b;
+        }
+
+        .danger {
+            background: #f5dddd;
+            color: #9a3030;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            margin-top: 7px;
+            font-size: 16px;
+            background: #fff;
+        }
+
+        .field {
+            margin-bottom: 15px;
+        }
+
+        .field label {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat {
+            background: #f7f4f7;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 23px;
+            margin-bottom: 5px;
+        }
+
+        .history-item {
+            border-bottom: 1px solid #eee;
+            padding: 13px 0;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .history-info {
+            color: #777;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .small-button {
+            width: auto;
+            padding: 8px 12px;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        .empty {
+            text-align: center;
+            color: #888;
+            padding: 15px;
+        }
+
+        .notice {
+            background: #f3eef5;
+            border-radius: 14px;
+            padding: 13px;
+            font-size: 13px;
+            line-height: 1.9;
+            color: #5c5360;
+        }
+
+        .accuracy {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #777;
+        }
+
+        .welcome {
+            background: #29242b;
+            color: white;
+        }
+
+        .welcome .sub {
+            color: #ddd;
+        }
+
+        .setup {
+            display: none;
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+<div class="app">
+
+    <header>
+
+        <h1>Cycle Tracker</h1>
+
+        <p>
+            چرخه مبینا 🌸
+        </p>
+
+    </header>
+
+
+    <!-- =========================
+         راه‌اندازی اولیه
+    ========================== -->
+
+    <div id="setupCard" class="card welcome setup">
+
+        <h2>
+            سلام مبینا 🌸
+        </h2>
+
+        <div class="sub">
+
+            برای اینکه بتوانم چرخه‌ات را پیش‌بینی کنم،
+            فقط تاریخ شروع آخرین پریودت را وارد کن.
+
+        </div>
+
+
+        <div class="field" style="margin-top:20px;">
+
+            <label>
+                آخرین پریودت چه روزی شروع شد؟
+            </label>
+
+            <input
+                type="date"
+                id="firstPeriodDate"
+            >
+
+        </div>
+
+
+        <button
+            class="primary"
+            onclick="setupApp()"
+        >
+            شروع کنیم 🌸
+        </button>
+
+    </div>
+
+
+
+    <!-- =========================
+         پیش‌بینی پریود
+    ========================== -->
+
+    <div class="card main-card">
+
+        <div class="label">
+            پریود احتمالی بعدی
+        </div>
+
+        <div id="nextPeriod" class="prediction">
+            —
+        </div>
+
+        <div id="predictionDetails" class="sub">
+            —
+        </div>
+
+        <div id="accuracy" class="accuracy">
+            —
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================
+         PMS
+    ========================== -->
+
+    <div class="card main-card">
+
+        <div class="label">
+            بازه احتمالی PMS
+        </div>
+
+        <div id="pmsPrediction" class="prediction">
+            —
+        </div>
+
+        <div class="sub">
+
+            این بازه بر اساس پیش‌بینی پریود
+            محاسبه شده و حدود ۵ روز قبل از آن است.
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================
+         ثبت پریود جدید
+    ========================== -->
+
+    <div class="card">
+
+        <h3>
+            پریود جدید
+        </h3>
+
+        <div class="sub">
+
+            وقتی پریودت شروع شد،
+            تاریخ واقعی شروع آن را ثبت کن
+            تا پیش‌بینی بعدی دقیق‌تر شود.
+
+        </div>
+
+
+        <div class="field" style="margin-top:15px;">
+
+            <label>
+                تاریخ شروع پریود
+            </label>
+
+            <input
+                type="date"
+                id="newPeriodDate"
+            >
+
+        </div>
+
+
+        <button
+            class="primary"
+            onclick="addPeriod()"
+        >
+            پریودم شروع شد
+        </button>
+
+    </div>
+
+
+
+    <!-- =========================
+         آمار
+    ========================== -->
+
+    <div class="card">
+
+        <h3>
+            آمار چرخه مبینا
+        </h3>
+
+
+        <div class="stats">
+
+            <div class="stat">
+
+                <strong id="cycleAverage">
+                    —
+                </strong>
+
+                <span>
+                    میانگین سیکل
+                </span>
+
+            </div>
+
+
+            <div class="stat">
+
+                <strong id="cycleCount">
+                    0
+                </strong>
+
+                <span>
+                    پریود ثبت‌شده
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================
+         سابقه
+    ========================== -->
+
+    <div class="card">
+
+        <h3>
+            سابقه پریودها
+        </h3>
+
+
+        <div id="history">
+
+            <div class="empty">
+                هنوز اطلاعاتی ثبت نشده است.
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================
+         اطلاع پزشکی
+    ========================== -->
+
+    <div class="notice">
+
+        ⚠️ این برنامه فقط برای ثبت اطلاعات و
+        تخمین تقریبی چرخه طراحی شده است و
+        جایگزین تشخیص یا توصیه پزشکی نیست.
+
+    </div>
+
+
+
+    <!-- =========================
+         حذف اطلاعات
+    ========================== -->
+
+    <div class="card">
+
+        <button
+            class="danger"
+            onclick="clearAllData()"
+        >
+            حذف تمام اطلاعات
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+
+/* =====================================================
+   اطلاعات ذخیره‌شده
+===================================================== */
+
+let periods = JSON.parse(
+    localStorage.getItem("mobina_periods") || "[]"
+);
+
+
+/* =====================================================
+   ابزار تاریخ
+===================================================== */
+
+function dateObject(dateString) {
+
+    const parts = dateString.split("-");
+
+    return new Date(
+        Number(parts[0]),
+        Number(parts[1]) - 1,
+        Number(parts[2])
+    );
+
+}
+
+
+function formatDate(date) {
+
+    return new Intl.DateTimeFormat(
+        "fa-IR",
+        {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        }
+    ).format(date);
+
+}
+
+
+function addDays(date, days) {
+
+    const result = new Date(date);
+
+    result.setDate(
+        result.getDate() + days
+    );
+
+    return result;
+
+}
+
+
+function daysBetween(date1, date2) {
+
+    const milliseconds =
+        date2.getTime() -
+        date1.getTime();
+
+    return Math.round(
+        milliseconds /
+        (1000 * 60 * 60 * 24)
+    );
+
+}
+
+
+/* =====================================================
+   ذخیره اطلاعات
+===================================================== */
+
+function saveData() {
+
+    localStorage.setItem(
+        "mobina_periods",
+        JSON.stringify(periods)
+    );
+
+}
+
+
+/* =====================================================
+   محاسبه طول سیکل‌ها
+===================================================== */
+
+function getCycleLengths() {
+
+    if (periods.length < 2) {
+
+        return [];
+
+    }
+
+
+    const sorted =
+        [...periods].sort(
+            (a, b) =>
+                dateObject(a) -
+                dateObject(b)
+        );
+
+
+    const cycles = [];
+
+
+    for (
+        let i = 1;
+        i < sorted.length;
+        i++
+    ) {
+
+        const previous =
+            dateObject(sorted[i - 1]);
+
+        const current =
+            dateObject(sorted[i]);
+
+
+        const length =
+            daysBetween(
+                previous,
+                current
+            );
+
+
+        /*
+         جلوگیری از داده‌های غیرمنطقی
+        */
+
+        if (
+            length >= 15 &&
+            length <= 60
+        ) {
+
+            cycles.push(length);
+
+        }
+
+    }
+
+
+    return cycles;
+
+}
+
+
+/* =====================================================
+   میانگین سیکل
+===================================================== */
+
+function getAverageCycle() {
+
+    const cycles =
+        getCycleLengths();
+
+
+    /*
+     هنوز فقط یک پریود داریم
+    */
+
+    if (cycles.length === 0) {
+
+        return 28;
+
+    }
+
+
+    const sum =
+        cycles.reduce(
+            (total, value) =>
+                total + value,
+            0
+        );
+
+
+    return Math.round(
+        sum / cycles.length
+    );
+
+}
+
+
+/* =====================================================
+   میزان دقت
+===================================================== */
+
+function getAccuracyText() {
+
+    if (periods.length === 1) {
+
+        return "پیش‌بینی اولیه — بر اساس سیکل پایه ۲۸ روزه";
+
+    }
+
+
+    if (periods.length === 2) {
+
+        return "دقت اولیه — بر اساس اولین سیکل واقعی";
+
+    }
+
+
+    if (periods.length <= 4) {
+
+        return "در حال یادگیری الگوی چرخه مبینا";
+
+    }
+
+
+    return "پیش‌بینی شخصی‌سازی‌شده بر اساس سابقه چرخه";
+
+}
+
+
+/* =====================================================
+   پیش‌بینی
+===================================================== */
+
+function updatePrediction() {
+
+
+    if (periods.length === 0) {
+
+        document.getElementById(
+            "nextPeriod"
+        ).innerText =
+            "هنوز اطلاعاتی ثبت نشده";
+
+
+        document.getElementById(
+            "predictionDetails"
+        ).innerText =
+            "تاریخ آخرین پریود را وارد کن.";
+
+
+        document.getElementById(
+            "pmsPrediction"
+        ).innerText =
+            "—";
+
+
+        return;
+
+    }
+
+
+    /*
+     آخرین پریود
+    */
+
+    const sorted =
+        [...periods].sort(
+            (a, b) =>
+                dateObject(b) -
+                dateObject(a)
+        );
+
+
+    const lastPeriod =
+        dateObject(sorted[0]);
+
+
+    /*
+     میانگین سیکل
+    */
+
+    const cycleLength =
+        getAverageCycle();
+
+
+    /*
+     پریود بعدی
+    */
+
+    const nextPeriod =
+        addDays(
+            lastPeriod,
+            cycleLength
+        );
+
+
+    /*
+     بازه پیش‌بینی:
+     دو روز قبل تا دو روز بعد
+    */
+
+    const rangeStart =
+        addDays(
+            nextPeriod,
+            -2
+        );
+
+
+    const rangeEnd =
+        addDays(
+            nextPeriod,
+            2
+        );
+
+
+    document.getElementById(
+        "nextPeriod"
+    ).innerText =
+
+        formatDate(rangeStart)
+        +
+        " تا "
+        +
+        formatDate(rangeEnd);
+
+
+    document.getElementById(
+        "predictionDetails"
+    ).innerText =
+
+        "بر اساس سیکل تقریبی "
+        +
+        cycleLength
+        +
+        " روزه";
+
+
+    document.getElementById(
+        "accuracy"
+    ).innerText =
+
+        getAccuracyText();
+
+
+
+    /* =================================================
+       PMS
+    ================================================= */
+
+
+    /*
+     PMS پنج روز قبل از پریود
+    */
+
+    const pmsStart =
+        addDays(
+            nextPeriod,
+            -5
+        );
+
+
+    const pmsEnd =
+        addDays(
+            nextPeriod,
+            -1
+        );
+
+
+    document.getElementById(
+        "pmsPrediction"
+    ).innerText =
+
+        formatDate(pmsStart)
+        +
+        " تا "
+        +
+        formatDate(pmsEnd);
+
+}
+
+
+/* =====================================================
+   راه‌اندازی اولیه
+===================================================== */
+
+function setupApp() {
+
+    const date =
+        document.getElementById(
+            "firstPeriodDate"
+        ).value;
+
+
+    if (!date) {
+
+        alert(
+            "تاریخ آخرین پریود را وارد کن."
+        );
+
+        return;
+
+    }
+
+
+    periods = [date];
+
+
+    saveData();
+
+
+    document.getElementById(
+        "setupCard"
+    ).style.display = "none";
+
+
+    updatePrediction();
+
+    updateStats();
+
+    renderHistory();
+
+
+    alert(
+        "اطلاعات مبینا ثبت شد 🌸"
+    );
+
+}
+
+
+/* =====================================================
+   ثبت پریود جدید
+===================================================== */
+
+function addPeriod() {
+
+    const date =
+        document.getElementById(
+            "newPeriodDate"
+        ).value;
+
+
+    if (!date) {
+
+        alert(
+            "تاریخ شروع پریود را انتخاب کن."
+        );
+
+        return;
+
+    }
+
+
+    /*
+     جلوگیری از ثبت دوباره
+    */
+
+    if (
+        periods.includes(date)
+    ) {
+
+        alert(
+            "این تاریخ قبلاً ثبت شده است."
+        );
+
+        return;
+
+    }
+
+
+    /*
+     بررسی اینکه تاریخ جدید
+     بعد از آخرین پریود باشد
+    */
+
+    const sorted =
+        [...periods].sort(
+            (a, b) =>
+                dateObject(b) -
+                dateObject(a)
+        );
+
+
+    if (
+        sorted.length > 0 &&
+        dateObject(date) <=
+        dateObject(sorted[0])
+    ) {
+
+        alert(
+            "تاریخ پریود جدید باید بعد از آخرین پریود ثبت‌شده باشد."
+        );
+
+        return;
+
+    }
+
+
+    periods.push(date);
+
+
+    saveData();
+
+    updatePrediction();
+
+    updateStats();
+
+    renderHistory();
+
+
+    document.getElementById(
+        "newPeriodDate"
+    ).value = "";
+
+
+    alert(
+        "پریود جدید ثبت شد 🌸"
+    );
+
+}
+
+
+/* =====================================================
+   نمایش سابقه
+===================================================== */
+
+function renderHistory() {
+
+    const container =
+        document.getElementById(
+            "history"
+        );
+
+
+    if (periods.length === 0) {
+
+        container.innerHTML =
+            '<div class="empty">هنوز اطلاعاتی ثبت نشده است.</div>';
+
+        return;
+
+    }
+
+
+    const sorted =
+        [...periods].sort(
+            (a, b) =>
+                dateObject(b) -
+                dateObject(a)
+        );
+
+
+    container.innerHTML = "";
+
+
+    sorted.forEach(
+        (period, index) => {
+
+            const date =
+                dateObject(period);
+
+
+            const html = `
+
+                <div class="history-item">
+
+                    <div class="history-title">
+
+                        ${
+                            index === 0
+                            ? "آخرین پریود"
+                            : "پریود ثبت‌شده"
+                        }
+
+                    </div>
+
+
+                    <div class="history-info">
+
+                        شروع:
+                        ${formatDate(date)}
+
+                    </div>
+
+
+                    <button
+                        class="danger small-button"
+                        onclick="deletePeriod('${period}')"
+                    >
+                        حذف
+                    </button>
+
+                </div>
+
+            `;
+
+
+            container.innerHTML += html;
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   حذف یک پریود
+===================================================== */
+
+function deletePeriod(date) {
+
+    const answer =
+        confirm(
+            "این تاریخ حذف شود؟"
+        );
+
+
+    if (!answer) return;
+
+
+    periods =
+        periods.filter(
+            item =>
+                item !== date
+        );
+
+
+    saveData();
+
+    updatePrediction();
+
+    updateStats();
+
+    renderHistory();
+
+}
+
+
+/* =====================================================
+   آمار
+===================================================== */
+
+function updateStats() {
+
+    document.getElementById(
+        "cycleCount"
+    ).innerText =
+        periods.length;
+
+
+    const cycles =
+        getCycleLengths();
+
+
+    if (cycles.length === 0) {
+
+        document.getElementById(
+            "cycleAverage"
+        ).innerText =
+            "۲۸ روز";
+
+        return;
+
+    }
+
+
+    const average =
+        Math.round(
+            cycles.reduce(
+                (sum, value) =>
+                    sum + value,
+                0
+            ) /
+            cycles.length
+        );
+
+
+    document.getElementById(
+        "cycleAverage"
+    ).innerText =
+        average +
+        " روز";
+
+}
+
+
+/* =====================================================
+   حذف تمام اطلاعات
+===================================================== */
+
+function clearAllData() {
+
+    const answer =
+        confirm(
+            "تمام اطلاعات مبینا حذف شود؟"
+        );
+
+
+    if (!answer) return;
+
+
+    periods = [];
+
+
+    localStorage.removeItem(
+        "mobina_periods"
+    );
+
+
+    document.getElementById(
+        "setupCard"
+    ).style.display =
+        "block";
+
+
+    updatePrediction();
+
+    updateStats();
+
+    renderHistory();
+
+}
+
+
+/* =====================================================
+   اجرای اولیه
+===================================================== */
+
+function initializeApp() {
+
+
+    /*
+     اگر هنوز هیچ اطلاعاتی نداریم،
+     صفحه راه‌اندازی نمایش داده شود.
+    */
+
+    if (periods.length === 0) {
+
+        document.getElementById(
+            "setupCard"
+        ).style.display =
+            "block";
+
+    } else {
+
+        document.getElementById(
+            "setupCard"
+        ).style.display =
+            "none";
+
+    }
+
+
+    /*
+     تاریخ امروز
+    */
+
+    const today =
+        new Date()
+        .toISOString()
+        .split("T")[0];
+
+
+    document.getElementById(
+        "firstPeriodDate"
+    ).value =
+        today;
+
+
+    document.getElementById(
+        "newPeriodDate"
+    ).value =
+        today;
+
+
+    updatePrediction();
+
+    updateStats();
+
+    renderHistory();
+
+}
+
+
+initializeApp();
+
+/* =====================================================
+   فعال‌سازی PWA
+===================================================== */
+
+if ("serviceWorker" in navigator) {
+
+    window.addEventListener("load", () => {
+
+        navigator.serviceWorker
+            .register("./sw.js")
+            .then(() => {
+
+                console.log(
+                    "Cycle Tracker PWA فعال شد."
+                );
+
+            })
+            .catch(error => {
+
+                console.log(
+                    "خطا در فعال‌سازی PWA:",
+                    error
+                );
+
+            });
+
+    });
+
+}
+</script>
+
+</body>
+  </html>
